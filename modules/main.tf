@@ -1,13 +1,19 @@
-provider "aws" {
-  region = "us-east-1"
+module "vpc" {
+  source              = "./modules/vpc"
+  vpc_name            = var.vpc_name
+  vpc_cidr            = var.vpc_cidr
+  public_subnet_cidr  = var.public_subnet_cidr
+  private_subnet_cidr = var.private_subnet_cidr
+  availability_zone   = var.availability_zone
 }
 
-module "vpc" {
-  source = "./vpc"  # path to your VPC module
-
-  vpc_name             = "vpc-1"
-  vpc_cidr             = "10.0.0.0/16"
-  public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
-  availability_zones   = ["us-east-1a", "us-east-1b"]
+# EC2 Module (instance in private subnet)
+module "private_ec2_instance" {
+  source              = "./modules/ec2"
+  ami_id              = var.ami_id
+  instance_type       = var.instance_type
+  subnet_id           = module.vpc.private_subnet_id
+  key_name            = var.key_name
+  associate_public_ip = false
+  instance_name       = var.instance_name
 }
